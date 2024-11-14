@@ -59,4 +59,5 @@ class DefaultFirebaseOptions {
     projectId: 'instagram-clone-51e7b',
     storageBucket: 'instagram-clone-51e7b.firebasestorage.app',
   );
+
 }

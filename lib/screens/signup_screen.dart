@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/providers/app_auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:validators/validators.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -60,14 +62,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   alignment: Alignment.center,
                   child: Stack(
                     children: [
-                      _image == null ?
-                      CircleAvatar(
-                        radius: 64,
-                        backgroundImage: AssetImage('assets/images/profile.png')
-                      ) : CircleAvatar(
-                          radius: 64,
-                          backgroundImage: MemoryImage(_image!),
-                      ) ,
+                      _image == null
+                          ? CircleAvatar(
+                              radius: 64,
+                              backgroundImage:
+                                  AssetImage('assets/images/profile.png'))
+                          : CircleAvatar(
+                              radius: 64,
+                              backgroundImage: MemoryImage(_image!),
+                            ),
                       Positioned(
                         left: 80,
                         bottom: -10,
@@ -92,11 +95,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: Icon(Icons.email),
                     filled: true,
                   ),
-                  validator: (value){
+                  validator: (value) {
                     // 아무것도 입력하지 않았을 때
                     // 공백만 입력했을 때
                     // 이메일 형식이 아닐 때
-                    if(value == null || value.trim().isEmpty || !isEmail(value.trim())){
+                    if (value == null ||
+                        value.trim().isEmpty ||
+                        !isEmail(value.trim())) {
                       return '이메일을 입력해주세요.';
                     }
                     return null;
@@ -113,11 +118,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: Icon(Icons.account_circle),
                     filled: true,
                   ),
-                  validator: (value){
-                    if(value == null || value.trim().isEmpty){
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
                       return '이름을 입력해주세요.';
                     }
-                    if (value.length<3 || value.trim().isEmpty){
+                    if (value.length < 3 || value.trim().isEmpty) {
                       return '이름은 최소 3글자, 최대 10글자 까지 입력 가능합니다.';
                     }
                     return null;
@@ -135,11 +140,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: Icon(Icons.lock),
                     filled: true,
                   ),
-                  validator: (value){
-                    if(value == null || value.trim().isEmpty){
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
                       return '패스워드를 입력해주세요.';
                     }
-                    if (value.length<6){
+                    if (value.length < 6) {
                       return '패스워드는 6글자 이상 입력해주세요.';
                     }
                     return null;
@@ -156,8 +161,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: Icon(Icons.lock),
                     filled: true,
                   ),
-                  validator: (value){
-                    if(_passwordEditingController.text != value){
+                  validator: (value) {
+                    if (_passwordEditingController.text != value) {
                       return '패스워드가 일치하지 않습니다.';
                     }
                   },
@@ -168,13 +173,23 @@ class _SignupScreenState extends State<SignupScreen> {
                   onPressed: () {
                     final form = _globalKey.currentState;
 
+                    if (form == null || form.validate()) {
+                      return;
+                    }
+
                     setState(() {
                       _autovalidateMode = AutovalidateMode.always;
                     });
 
-                    if(form == null ||form.validate())
-                    return ;
+
+                    context.read<AppAuthProvider>().signUp(
+                      email: _emailEditingController.text,
+                      name: _nameEditingController.text,
+                      password: _passwordEditingController.text,
+                      profileImage: _image,
+                    );
                   },
+                  //회원가입 로직
                   child: Text('회원가입'),
                   style: ElevatedButton.styleFrom(
                     textStyle: TextStyle(fontSize: 20),
