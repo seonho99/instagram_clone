@@ -1,24 +1,24 @@
-enum AuthStateEnum {
+enum AuthStatus {
   authenticated,
   unauthenticated,
 }
 
 class AuthState {
-  final AuthStateEnum authState;
+  final AuthStatus authStatus;
 
-  const AuthState({required this.authState});
+  const AuthState({required this.authStatus});
 
   factory AuthState.init() {
     return AuthState(
-      authState: AuthStateEnum.unauthenticated,
+      authStatus: AuthStatus.unauthenticated,
     );
   }
 
   AuthState copyWith({
-    AuthStateEnum? authState,
+    AuthStatus? authStatus,
   }) {
     return AuthState(
-      authState: authState ?? this.authState,
+      authStatus: authStatus ?? this.authStatus,
     );
   }
 }

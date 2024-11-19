@@ -1,50 +1,33 @@
-import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
-import 'package:instagram_clone/providers/app_auth_provider.dart';
-import 'package:instagram_clone/screens/signin_screen.dart';
+import 'package:instagram_clone/providers/auth_state.dart';
+import 'package:instagram_clone/screens/signup_screen.dart';
 import 'package:instagram_clone/widgets/error_dialog_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:validators/validators.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+import '../providers/app_auth_provider.dart';
+import '../utils/logger.dart';
+
+class SigninScreen extends StatefulWidget {
+  const SigninScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<SigninScreen> createState() => _SigninScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SigninScreenState extends State<SigninScreen> {
   GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
   TextEditingController _emailEditingController = TextEditingController();
-  TextEditingController _nameEditingController = TextEditingController();
   TextEditingController _passwordEditingController = TextEditingController();
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
-  Uint8List? _image;
   bool _isEnabled = true;
-
-  Future<void> selectImage() async {
-    ImagePicker imagePicker = ImagePicker();
-    XFile? file = await imagePicker.pickImage(
-      source: ImageSource.gallery,
-      maxHeight: 512,
-      maxWidth: 512,
-    );
-
-    if (file != null) {
-      Uint8List uint8list = await file.readAsBytes();
-      setState(() {
-        _image = uint8list;
-      });
-    }
-  }
 
   @override
   void dispose() {
     _emailEditingController.dispose();
-    _nameEditingController.dispose();
     _passwordEditingController.dispose();
     super.dispose();
   }
@@ -74,37 +57,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           ColorFilter.mode(Colors.white, BlendMode.srcIn),
                     ),
                     SizedBox(height: 20),
-                    // 프로필 사진
-                    Container(
-                      alignment: Alignment.center,
-                      child: Stack(
-                        children: [
-                          _image == null
-                              ? CircleAvatar(
-                                  radius: 64,
-                                  backgroundImage:
-                                      AssetImage('assets/images/profile.png'),
-                                )
-                              : CircleAvatar(
-                                  radius: 64,
-                                  backgroundImage: MemoryImage(_image!),
-                                ),
-                          Positioned(
-                            left: 80,
-                            bottom: -10,
-                            child: IconButton(
-                              onPressed: _isEnabled
-                                  ? () async {
-                                      await selectImage();
-                                    }
-                                  : null,
-                              icon: Icon(Icons.add_a_photo),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 30),
                     // 이메일
                     TextFormField(
                       enabled: _isEnabled,
@@ -124,28 +76,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             value.trim().isEmpty ||
                             !isEmail(value.trim())) {
                           return '이메일을 입력해주세요.';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-
-                    // 이름
-                    TextFormField(
-                      enabled: _isEnabled,
-                      controller: _nameEditingController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Name',
-                        prefixIcon: Icon(Icons.account_circle),
-                        filled: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '이름을 입력해주세요.';
-                        }
-                        if (value.length < 3 || value.trim().isEmpty) {
-                          return '이름은 최소 3글자, 최대 10글자 까지 입력 가능합니다.';
                         }
                         return null;
                       },
@@ -175,29 +105,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     SizedBox(height: 20),
 
-                    // 패스워드확인
-                    TextFormField(
-                      // enabled: false, // 선택 불가
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Confirm Password',
-                        prefixIcon: Icon(Icons.lock),
-                        filled: true,
-                      ),
-                      validator: (value) {
-                        if (_passwordEditingController.text != value) {
-                          return '패스워드가 일치하지 않습니다.';
-                        }
-                      },
-                    ),
-                    SizedBox(height: 40),
-
                     // 회원 가입
                     ElevatedButton(
                       onPressed: _isEnabled
                           ? () async {
                               final form = _globalKey.currentState;
+
+
 
                               if (form == null || form.validate()) {
                                 return;
@@ -208,24 +122,16 @@ class _SignupScreenState extends State<SignupScreen> {
                                 _autovalidateMode = AutovalidateMode.always;
                               });
 
+                              // 로그인 로직
                               try {
-                                await context.read<AppAuthProvider>().signUp(
+                                logger.d(context.read<AuthState>().authStatus);
+
+                                await context.read<AppAuthProvider>().signIn(
                                       email: _emailEditingController.text,
-                                      name: _nameEditingController.text,
                                       password: _passwordEditingController.text,
-                                      profileImage: _image,
                                     );
+                                logger.d(context.read<AuthState>().authStatus);
 
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(builder: (context)=> SigninScreen(),),);
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('인증 메일을 전송했습니다.'),
-                                    duration: Duration(seconds: 120),
-                                  ),
-                                );
                               } on CustomException catch (e) {
                                 setState(() {
                                   _isEnabled = true;
@@ -234,8 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               }
                             }
                           : null,
-                      //회원가입 로직
-                      child: Text('회원가입'),
+                      child: Text('로그인'),
                       style: ElevatedButton.styleFrom(
                         textStyle: TextStyle(fontSize: 20),
                         padding: const EdgeInsets.symmetric(vertical: 15),
@@ -248,10 +153,10 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? () => Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => SigninScreen()))
+                                  builder: (context) => SignupScreen()))
                           : null,
                       child: Text(
-                        '이미 회원이신가요? 로그인하기',
+                        '회원이 아니신가요? 회원가입 하기',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),

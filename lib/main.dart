@@ -7,7 +7,9 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:instagram_clone/providers/app_auth_provider.dart';
 import 'package:instagram_clone/providers/auth_state.dart';
 import 'package:instagram_clone/repositories/auth_repository.dart';
+import 'package:instagram_clone/screens/signin_screen.dart';
 import 'package:instagram_clone/screens/signup_screen.dart';
+import 'package:instagram_clone/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // FirebaseAuth.instance.signOut();
     return MultiProvider(
       providers: [
         Provider<AuthRepository>(
@@ -39,21 +42,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
-        home: SignupScreen(),
+        home: SplashScreen(),
       ),
     );
   }
 }
 
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('메인화면'),
-      ),
-    );
-  }
-}
