@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -7,7 +10,12 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('메인화면'),
+        child: ElevatedButton(
+          onPressed: () async {
+            await context.read<AuthProvider>().signOut();
+          },
+          child: Text('로그아웃'),
+        ),
       ),
     );
   }

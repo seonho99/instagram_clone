@@ -12,29 +12,42 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authStatus = context.watch<AuthState>().authStatus;
 
-    if (authStatus == AuthStatus.authenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_){
-        // 메인 페이지
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainScreen(),
-          ),
-        );
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 메인 페이지
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => authStatus == AuthStatus.authenticated
+              ? MainScreen()
+              : SigninScreen(),
+        ),
+        (route) => route.isFirst,
+      );
+    });
 
-
-    } else if (authStatus == AuthStatus.unauthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // 로그인 화면 이동
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SigninScreen(),
-          ),
-        );
-      });
-    }
+    // if (authStatus == AuthStatus.authenticated) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     // 메인 페이지
+    //     Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (context) => MainScreen(),
+    //       ),
+    //       (route) => route.isFirst,
+    //     );
+    //   });
+    // } else if (authStatus == AuthStatus.unauthenticated) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     // 로그인 페이지
+    //     Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (context) => SigninScreen(),
+    //       ),
+    //       (route) => route.isFirst,
+    //     );
+    //   });
+    // }
 
     return Scaffold(
       body: Center(

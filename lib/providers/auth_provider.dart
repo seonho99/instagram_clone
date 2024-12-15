@@ -3,9 +3,20 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
 import 'package:instagram_clone/providers/auth_state.dart';
 import 'package:instagram_clone/repositories/auth_repository.dart';
+import 'package:provider/provider.dart';
 
-class AppAuthProvider extends StateNotifier<AuthState> with LocatorMixin {
-  AppAuthProvider() : super(AuthState.init());
+class AuthProvider extends StateNotifier<AuthState> with LocatorMixin {
+  AuthProvider() : super(AuthState.init());
+
+  @override
+  void update(Locator watch) {
+    watch<User?>();
+  }
+
+  Future<void> signOut() async{
+    await read<AuthProvider>().signOut();
+
+  }
 
   // 로그인
   // Firebase 로그인 작업
@@ -34,8 +45,7 @@ class AppAuthProvider extends StateNotifier<AuthState> with LocatorMixin {
     try{
       await read<AuthRepository>().signIn(email: email, password: password);
 
-      state = state.copyWith(
-        authStatus: AuthStatus.authenticated);
+
     }on CustomException catch (_) {
       rethrow;
     }

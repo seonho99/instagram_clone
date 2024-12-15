@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
-import 'package:instagram_clone/providers/app_auth_provider.dart';
+import 'package:instagram_clone/providers/auth_provider.dart';
 import 'package:instagram_clone/screens/signin_screen.dart';
 import 'package:instagram_clone/widgets/error_dialog_widget.dart';
 import 'package:provider/provider.dart';
@@ -209,7 +209,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               });
 
                               try {
-                                await context.read<AppAuthProvider>().signUp(
+                                await context.read<AuthProvider>().signUp(
                                       email: _emailEditingController.text,
                                       name: _nameEditingController.text,
                                       password: _passwordEditingController.text,

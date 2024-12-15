@@ -1,15 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:instagram_clone/exception/custom_exception.dart';
-import 'package:instagram_clone/providers/auth_state.dart';
-import 'package:instagram_clone/screens/signup_screen.dart';
-import 'package:instagram_clone/widgets/error_dialog_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:validators/validators.dart';
 
-import '../providers/app_auth_provider.dart';
+import '../exception/custom_exception.dart';
+import '../providers/auth_provider.dart';
+import '../providers/auth_state.dart';
 import '../utils/logger.dart';
+import '../widgets/error_dialog_widget.dart';
+import 'signup_screen.dart';
 
 class SigninScreen extends StatefulWidget {
   const SigninScreen({super.key});
@@ -126,7 +127,7 @@ class _SigninScreenState extends State<SigninScreen> {
                               try {
                                 logger.d(context.read<AuthState>().authStatus);
 
-                                await context.read<AppAuthProvider>().signIn(
+                                await context.read<AuthProvider>().signIn(
                                       email: _emailEditingController.text,
                                       password: _passwordEditingController.text,
                                     );
