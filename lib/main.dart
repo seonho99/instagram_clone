@@ -1,19 +1,19 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
-
+import 'package:instagram_clone/providers/feed/feed_provider.dart';
+import 'package:instagram_clone/providers/feed/feed_state.dart';
+import 'package:instagram_clone/repositories/auth_repository.dart';
+import 'package:instagram_clone/repositories/feed_repository.dart';
+import 'package:instagram_clone/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
-
-import 'providers/auth_state.dart';
-import 'repositories/auth_repository.dart';
-import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,12 +37,21 @@ class MyApp extends StatelessWidget {
             firebaseFirestore: FirebaseFirestore.instance,
           ),
         ),
-        StateNotifierProvider<AuthProvider, AuthState>(
-          create: (context) => AuthProvider(),
+        Provider<FeedResoitroy>(
+            create: (context) => FeedResoitroy(
+              firebaseStorage: FirebaseStorage.instance,
+              firebaseFirestore: FirebaseFirestore.instance
+            ),
         ),
         StreamProvider<User?>(
             create: (context) => FirebaseAuth.instance.authStateChanges(),
-            initialData: null)
+            initialData: null,
+        ),
+        StateNotifierProvider<AuthProvider, AuthState>(
+          create: (context) => AuthProvider(),
+        ),
+        StateNotifierProvider<FeedProvider, FeedState>(
+            create: (context) => FeedProvider(),),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

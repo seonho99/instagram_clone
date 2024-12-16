@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:validators/validators.dart';
 
 import '../exception/custom_exception.dart';
-import '../providers/auth_provider.dart';
-import '../providers/auth_state.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/auth/auth_state.dart';
 import '../utils/logger.dart';
 import '../widgets/error_dialog_widget.dart';
 import 'signup_screen.dart';

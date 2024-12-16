@@ -1,7 +1,8 @@
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
-import 'package:instagram_clone/providers/auth_state.dart';
+import 'package:instagram_clone/providers/auth/auth_state.dart';
 import 'package:instagram_clone/repositories/auth_repository.dart';
 import 'package:provider/provider.dart';
 
@@ -10,7 +11,26 @@ class AuthProvider extends StateNotifier<AuthState> with LocatorMixin {
 
   @override
   void update(Locator watch) {
-    watch<User?>();
+    final user = watch<User?>();
+
+
+    if(user != null && !user.emailVerified){
+      return;
+    }
+
+    if(user == null && state.authStatus == AuthStatus.unauthenticated){
+      return;
+    }
+
+    if (user != null) {
+      state = state.copyWith(
+        authStatus: AuthStatus.authenticated,
+      );
+    } else {
+      state = state.copyWith(
+        authStatus: AuthStatus.unauthenticated,
+      );
+    }
   }
 
   Future<void> signOut() async{

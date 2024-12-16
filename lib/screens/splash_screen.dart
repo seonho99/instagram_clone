@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
-import 'package:instagram_clone/providers/auth_state.dart';
+import 'package:instagram_clone/providers/auth/auth_state.dart';
 import 'package:instagram_clone/screens/main_screen.dart';
 import 'package:instagram_clone/screens/signin_screen.dart';
 import 'package:provider/provider.dart';
