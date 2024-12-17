@@ -59,4 +59,9 @@ class UserModel {
       likes: List<String>.from(map['likes']),
     );
   }
+
+  @override
+  String toString() {
+    return 'UserModel{uid: $uid, name: $name, email: $email, profileImage: $profileImage, feedCount: $feedCount, followers: $followers, following: $following, likes: $likes}';
+  }
 }

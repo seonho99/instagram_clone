@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/providers/auth/auth_provider.dart';
+import 'package:instagram_clone/screens/feed_screen.dart';
 import 'package:instagram_clone/screens/feed_upload_screen.dart';
 import 'package:instagram_clone/utils/logger.dart';
 import 'package:provider/provider.dart';
@@ -42,10 +43,7 @@ class _MainScreenState extends State<MainScreen>
           controller: tabController,
           physics: NeverScrollableScrollPhysics(),
           children: [
-
-            Center(
-              child: Text('2'),
-            ),
+            FeedScreen(),
             Center(
               child: Text('3'),
             ),

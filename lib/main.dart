@@ -37,8 +37,8 @@ class MyApp extends StatelessWidget {
             firebaseFirestore: FirebaseFirestore.instance,
           ),
         ),
-        Provider<FeedResoitroy>(
-            create: (context) => FeedResoitroy(
+        Provider<FeedRepository>(
+            create: (context) => FeedRepository(
               firebaseStorage: FirebaseStorage.instance,
               firebaseFirestore: FirebaseFirestore.instance
             ),
