@@ -15,8 +15,10 @@ class FeedProvider extends StateNotifier<FeedState> with LocatorMixin {
 
       List<FeedModel> feedList = await read<FeedRepository>().getFeedList();
 
-      state =
-          state.copyWith(feedList: feedList, feedStatus: FeedStatus.success);
+      state = state.copyWith(
+          feedList: feedList,
+          feedStatus: FeedStatus.success,
+      );
     } on CustomException catch (_) {
       state = state.copyWith(feedStatus: FeedStatus.error);
       rethrow;
@@ -31,10 +33,13 @@ class FeedProvider extends StateNotifier<FeedState> with LocatorMixin {
       state = state.copyWith(feedStatus: FeedStatus.submitting);
 
       String uid = read<User>().uid;
-      await read<FeedRepository>()
+      FeedModel feedModel = await read<FeedRepository>()
           .uploadFeed(files: files, desc: desc, uid: uid);
 
-      state = state.copyWith(feedStatus: FeedStatus.success);
+      state = state.copyWith(
+          feedStatus: FeedStatus.success,
+          feedList: [feedModel,...state.feedList],
+      );
     } on CustomException catch (_) {
       state = state.copyWith(feedStatus: FeedStatus.error);
       rethrow;

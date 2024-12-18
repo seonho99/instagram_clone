@@ -18,9 +18,15 @@ class FeedRepository {
     required this.firebaseFirestore,
   });
 
-  Future<List<FeedModel>> getFeedList() async {
+  Future<List<FeedModel>> getFeedList({
+    String? uid,
+}) async {
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot= await firebaseFirestore.collection('feeds').orderBy('createAt', descending: true).get(); // descending: true 최신 문서 순으로
+      QuerySnapshot<Map<String, dynamic>> snapshot = await firebaseFirestore
+          .collection('feeds')
+          .where('uid', isEqualTo: uid)
+          .orderBy('createAt', descending: true)
+          .get(); // descending: true 최신 문서 순으로
       return await Future.wait(snapshot.docs.map((e) async {
         Map<String, dynamic> data = e.data();
         DocumentReference<Map<String, dynamic>> writerDocRef = data['writer'];
@@ -43,7 +49,7 @@ class FeedRepository {
   }
 
 
-  Future<void> uploadFeed({
+  Future<FeedModel> uploadFeed({
     required List<String> files,
     required String desc,
     required String uid,
@@ -103,6 +109,8 @@ class FeedRepository {
     });
 
       batch.commit();
+
+      return FeedModel;
 
     } on FirebaseException catch (e) {
       _deleteImage(imageUrls);

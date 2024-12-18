@@ -1,15 +1,20 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
+import 'package:instagram_clone/providers/auth/auth_state.dart';
+import 'package:instagram_clone/providers/auth/auth_provider.dart';
 import 'package:instagram_clone/providers/feed/feed_provider.dart';
 import 'package:instagram_clone/providers/feed/feed_state.dart';
+import 'package:instagram_clone/providers/profile/profile_provider.dart';
+import 'package:instagram_clone/providers/profile/profile_state.dart';
+import 'package:instagram_clone/providers/user/user_provider.dart';
+import 'package:instagram_clone/providers/user/user_state.dart';
 import 'package:instagram_clone/repositories/auth_repository.dart';
 import 'package:instagram_clone/repositories/feed_repository.dart';
+import 'package:instagram_clone/repositories/profile_repository.dart';
 import 'package:instagram_clone/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -43,6 +48,11 @@ class MyApp extends StatelessWidget {
               firebaseFirestore: FirebaseFirestore.instance
             ),
         ),
+        Provider<ProfileRepository>(
+            create: (context) => ProfileRepository(
+              firebaseFirestore: FirebaseFirestore.instance,
+            ),
+        ),
         StreamProvider<User?>(
             create: (context) => FirebaseAuth.instance.authStateChanges(),
             initialData: null,
@@ -50,8 +60,15 @@ class MyApp extends StatelessWidget {
         StateNotifierProvider<AuthProvider, AuthState>(
           create: (context) => AuthProvider(),
         ),
+        StateNotifierProvider<UserProvider, UserState>(
+          create: (context) => UserProvider(),
+        ),
         StateNotifierProvider<FeedProvider, FeedState>(
-            create: (context) => FeedProvider(),),
+            create: (context) => FeedProvider(),
+        ),
+        StateNotifierProvider<ProfileProvider, ProfileState>(
+            create: (context) => ProfileProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/exception/custom_exception.dart';
 import 'package:instagram_clone/providers/auth/auth_provider.dart';
+import 'package:instagram_clone/providers/user/user_provider.dart';
 import 'package:instagram_clone/screens/feed_screen.dart';
 import 'package:instagram_clone/screens/feed_upload_screen.dart';
+import 'package:instagram_clone/screens/profile_screen.dart';
 import 'package:instagram_clone/utils/logger.dart';
+import 'package:instagram_clone/widgets/error_dialog_widget.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
@@ -20,6 +24,7 @@ class _MainScreenState extends State<MainScreen>
   void initState() {
     super.initState();
     tabController = TabController(length: 5, vsync: this);
+    _getProfile();
   }
 
   void bottomNavigationItemOnTab(int index){
@@ -32,6 +37,14 @@ class _MainScreenState extends State<MainScreen>
   void dispose() {
     tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _getProfile() async {
+    try {
+      await context.read<UserProvider>().getUserInfo();
+    } on CustomException catch (e) {
+      errorDialogWidget(context, e);
+    }
   }
 
   @override
@@ -57,9 +70,7 @@ class _MainScreenState extends State<MainScreen>
             Center(
               child: Text('4'),
             ),
-            Center(
-              child: Text('5'),
-            ),
+           ProfileScreen(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(

@@ -17,8 +17,12 @@ class FeedScreen extends StatefulWidget {
   State<FeedScreen> createState() => _FeedScreenState();
 }
 
-class _FeedScreenState extends State<FeedScreen> {
+class _FeedScreenState extends State<FeedScreen> with AutomaticKeepAliveClientMixin<FeedScreen>{
   late final FeedProvider feedProvider;
+
+  @override
+  bool get wantKeepAlive => true();
+
 
   @override
   void initState() {
@@ -39,13 +43,36 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<FeedModel> feedList = context.watch<FeedState>().feedList;
+    super.build(context);
+    FeedState feedState = context.watch<FeedState>();
+    List<FeedModel> feedList = feedState.feedList;
 
-    return ListView.builder(
-        itemCount: feedList.length,
-        itemBuilder: (context, index){
-          return FeedCardWidget(feedModel: feedList[index]);
+    if (feedState.feedStatus == FeedStatus.fetching) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (feedState.feedStatus == FeedStatus.success && feedList.length == 0) {
+      return Center(
+        child: Text('Feed기 존재하지 않습니다.'),
+      );
+    }
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          _getFeedList();
         },
+        child: ListView.builder(
+            itemCount: feedList.length,
+            itemBuilder: (context, index){
+              return FeedCardWidget(feedModel: feedList[index]);
+            },
+        ),
+      ),
     );
   }
+
+
 }
