@@ -1,11 +1,13 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
 import 'package:instagram_clone/models/feed_model.dart';
 import 'package:instagram_clone/models/user_model.dart';
 import 'package:instagram_clone/providers/profile/profile_provider.dart';
 import 'package:instagram_clone/providers/profile/profile_state.dart';
+import 'package:instagram_clone/providers/user/user_state.dart';
 import 'package:instagram_clone/widgets/error_dialog_widget.dart';
 import 'package:instagram_clone/widgets/feed_card_widget.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +15,9 @@ import 'package:provider/provider.dart';
 import '../utils/logger.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String uid;
+
+  const ProfileScreen({super.key, required this.uid});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -30,11 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _getProfile() {
-    String uid = context.read<User>().uid;
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await profileProvider.getProfile(uid: uid);
+        await profileProvider.getProfile(uid: widget.uid);
       } on CustomException catch (e) {
         errorDialogWidget(context, e);
       }
@@ -66,86 +68,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _customButtonWidget({
+    required AsyncCallback asyncCallback,
+    required String text,
+  }) {
+    return TextButton(
+      onPressed: () async {
+        try {
+          await asyncCallback();
+        } on CustomException catch (e) {
+          errorDialogWidget(context, e);
+        }
+      },
+      child: Text(text),
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: BorderSide(
+          color: Colors.grey,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ProfileState profileState = context.watch<ProfileState>();
+    // 프로필을 확인하려는 유저의 정보
     UserModel userModel = profileState.userModel;
     List<FeedModel> feedList = profileState.feedList;
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: userModel.profileImage == null
-                          ? ExtendedAssetImageProvider('assets/images/profile.png')
-                          : ExtendedNetworkImageProvider(userModel.profileImage!),
-                      radius: 40,
-                    ),
-                    SizedBox(height: 5),
-                    Text(userModel.name),
-                  ],
-                ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    // 현재 접속중인 유저의 정보
+    UserModel currentUserModel = context.read<UserState>().userModel;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Column(
                     children: [
-                      _profileInfoWidget(num: userModel.feedCount, label: 'feeds'),
-                      _profileInfoWidget(
-                          num: userModel.followers.length, label: 'follower'),
-                      _profileInfoWidget(
-                          num: userModel.following.length, label: 'following'),
+                      CircleAvatar(
+                        backgroundImage: userModel.profileImage == null
+                            ? ExtendedAssetImageProvider(
+                                'assets/images/profile.png')
+                            : ExtendedNetworkImageProvider(
+                                userModel.profileImage!),
+                        radius: 40,
+                      ),
+                      SizedBox(height: 5),
+                      Text(userModel.name),
                     ],
                   ),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () async {
-              await context.read<AuthProvider>().signOut();
-            },
-                child: Text(''),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: BorderSide(
-                color: Colors.grey,
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _profileInfoWidget(
+                            num: userModel.feedCount, label: 'feeds'),
+                        _profileInfoWidget(
+                            num: userModel.followers.length, label: 'follower'),
+                        _profileInfoWidget(
+                            num: userModel.following.length,
+                            label: 'following'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-
-              ),
-            ),),
-            Expanded(
+              currentUserModel.uid == userModel.uid
+                  ? _customButtonWidget(
+                      asyncCallback: context.read<AuthProvider>().signOut,
+                      text: 'Sign Out',
+                    )
+                  : _customButtonWidget(
+                      asyncCallback: () async {
+                        await context.read<ProfileProvider>().followUser(
+                              currentUserId: currentUserModel.uid,
+                              followId: userModel.uid,
+                            );
+                      },
+                      text: userModel.followers.contains(currentUserModel.uid)
+                          ? 'Unfollow'
+                          : 'Follow',
+                    ),
+              Expanded(
                 child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
                     crossAxisSpacing: 3,
                     mainAxisSpacing: 3,
-                    ),
+                  ),
                   itemCount: feedList.length,
-                  itemBuilder: (context, index){
-                      return GestureDetector(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (context) =>
-                                  ProfileScreen(feedModel: feedList[index]),
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProfileScreen(feedModel: feedList[index]),
                           ),
-                          );
-                        },
-                        child: ExtendedImage.network(feedList[index].imageUrls[0],
+                        );
+                      },
+                      child: ExtendedImage.network(
+                        feedList[index].imageUrls[0],
                         fit: BoxFit.cover,
-                        ),
-                      );
+                      ),
+                    );
                   },
                 ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -45,7 +45,7 @@ dependencies:
   provider: ^6.0.5
   state_notifier: ^1.0.0
   flutter_state_notifier: ^1.0.0
-  carousel_slider: ^4.2.1
+  carousel_slider: ^5.0.0
   uuid: ^4.0.0
   extended_image: ^8.1.0
   mime: ^1.0.4

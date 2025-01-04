@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/exception/custom_exception.dart';
 import 'package:instagram_clone/providers/auth/auth_provider.dart';
@@ -70,7 +71,9 @@ class _MainScreenState extends State<MainScreen>
             Center(
               child: Text('4'),
             ),
-           ProfileScreen(),
+           ProfileScreen(
+             uid: context.read<User>().uid,
+           ),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(

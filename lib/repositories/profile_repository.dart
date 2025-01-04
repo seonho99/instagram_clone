@@ -8,6 +8,51 @@ class ProfileRepository {
 
   const ProfileRepository({required this.firebaseFirestore});
 
+  Future<UserModel> followUser({
+    required String currentUserId,
+    required String followId,
+}) async {
+    try {
+
+      DocumentReference<Map<String, dynamic>> currentUserDocRef = firebaseFirestore.collection('user').doc(currentUserId);
+      DocumentReference<Map<String, dynamic>> followUserDocRef = firebaseFirestore.collection('user').doc(followId);
+
+      DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot = await currentUserDocRef.get();
+      List<String> following = List<String>.from(currentUserSnapshot.data()!['following']);
+
+      // List<String> following = await currentUserDocRef.get().then((value)=> List<String>.from(value.data()!['following']));
+
+      WriteBatch batch = firebaseFirestore.batch();
+      if(following.contains(followId)){
+        batch.update(currentUserDocRef, {
+          'following' : FieldValue.arrayRemove([followId])
+        });
+        batch.update(followUserDocRef, {
+          'followers' : FieldValue.arrayRemove([currentUserId])
+        });
+      }else{
+        batch.update(currentUserDocRef, {
+          'following' : FieldValue.arrayUnion([followId])
+        });
+        batch.update(followUserDocRef, {
+          'followers' : FieldValue.arrayUnion([currentUserId])
+        });
+      }
+
+      batch.commit();
+
+      Map<String, dynamic> map = await followUserDocRef.get().then((value) => value.data()!);
+      return UserModel.fromMap(map);
+
+    } catch (e) {
+      throw CustomException(
+        code: 'Exception',
+        message: e.toString(),
+      );
+    }
+
+  }
+
   Future<UserModel> getProfile({
     required String uid,
   }) async {

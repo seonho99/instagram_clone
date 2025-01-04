@@ -18,6 +18,59 @@ class FeedRepository {
     required this.firebaseFirestore,
   });
 
+  Future<FeedModel> likeFeed({
+    required String feedId,
+    required List<String> feedLikes,
+    required String uid,
+    required List<String> userLikes,
+}) async {
+    try{
+      DocumentReference<Map<String, dynamic>> userDocRef = firebaseFirestore.collection('users').doc(uid);
+      DocumentReference<Map<String, dynamic>> feedDocRef = firebaseFirestore.collection('feeds').doc(uid);
+      // 게시물을 좋아하는 유저 목록에 uid 가 포함되어 있는지 확인
+      // 포함되어 있다면 좋아요 취소
+      // 게시물의 likes 필드에서 uid 삭제
+      // 게시물의 likeCount 를 1 감소
+      // 유저가 촣아하는 게시물 목록에 feedId가 포함되어 있는지 확인
+      // 포함되어 있다면 좋아요 취소
+      // 유저의 likes 필드에서 feedId 삭제
+
+      await firebaseFirestore.runTransaction((transaction) async {
+        bool isFeedContains = feedLikes.contains(uid);
+        transaction.update(feedDocRef, {
+          'likes' : isFeedContains ? FieldValue.arrayRemove([uid]) : FieldValue.arrayUnion([uid]),
+          'likeCount' : isFeedContains ? FieldValue.increment(-1) : FieldValue.increment(1),
+
+        });
+
+        transaction.update(userDocRef, {
+          'likes' : userLikes.contains(feedId) ? FieldValue.arrayRemove([feedId]) : FieldValue.arrayUnion([feedId]),
+        });
+      });
+      Map<String, dynamic> feedMapData = await feedDocRef.get().then((value) => value.data()!);
+
+      DocumentReference<Map<String,dynamic>> writerDocRef = feedMapData['writer'];
+      Map<String,dynamic> userMapData = await writerDocRef.get().then((value) => value.data()!);
+      UserModel userModel = UserModel.fromMap(userMapData);
+      feedMapData['writer'] = userModel;
+      return FeedModel.fromMap(feedMapData);
+    } on FirebaseException catch (e) {
+      throw CustomException(
+        code: e.code,
+        message: e.message!,
+      );
+    } catch (e) {
+      throw CustomException(
+        code: 'Exception',
+        message: e.toString(),
+      );
+    }
+
+
+
+
+  }
+
   Future<List<FeedModel>> getFeedList({
     String? uid,
 }) async {
@@ -110,7 +163,7 @@ class FeedRepository {
 
       batch.commit();
 
-      return FeedModel;
+      return feedModel;
 
     } on FirebaseException catch (e) {
       _deleteImage(imageUrls);

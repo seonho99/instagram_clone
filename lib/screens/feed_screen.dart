@@ -21,7 +21,7 @@ class _FeedScreenState extends State<FeedScreen> with AutomaticKeepAliveClientMi
   late final FeedProvider feedProvider;
 
   @override
-  bool get wantKeepAlive => true();
+  bool get wantKeepAlive => true;
 
 
   @override

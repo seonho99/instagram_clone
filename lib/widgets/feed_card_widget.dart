@@ -1,6 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/providers/feed/feed_provider.dart';
+import 'package:instagram_clone/providers/user/user_provider.dart';
+import 'package:instagram_clone/providers/user/user_state.dart';
+import 'package:provider/provider.dart';
 
 import '../models/feed_model.dart';
 import '../models/user_model.dart';
@@ -9,18 +13,19 @@ import 'avatar_widget.dart';
 class FeedCardWidget extends StatefulWidget {
   final FeedModel feedModel;
 
-  const FeedCardWidget({super.key, required this.feedModel});
+  FeedCardWidget({super.key, required this.feedModel});
 
   @override
   State<FeedCardWidget> createState() => _FeedCardWidgetState();
 }
 
 class _FeedCardWidgetState extends State<FeedCardWidget> {
-  final CarouselController carouselController = CarouselController();
+  final CarouselSliderController carouselController =
+      CarouselSliderController();
   int _indicatorIndex = 0;
 
-  Widget _imageZoomInOutWidget(List<String> imageUrl) {
-    GestureDetector(
+  Widget _imageZoomInOutWidget(String imageUrl) {
+    return GestureDetector(
       onTap: () {
         showGeneralDialog(
           context: context,
@@ -42,48 +47,64 @@ class _FeedCardWidgetState extends State<FeedCardWidget> {
   }
 
   Widget _imageSliderWidget(List<String> imageUrls) {
-    return Stack(
-      children: [
-        CarouselSlider(
-          carouselController: carouselController,
-          items: imageUrls.map((url) => _imageZoomInOutWidget(url)).toList(),
-          options: CarouselOptions(
-            viewportFraction: 1.0,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _indicatorIndex = index;
-              });
-            },
-            height: MediaQuery.of(context).size.height * 0.35,
-          ),
-        ),
-        Positioned.fill(
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: imageUrls.asMap().keys.map((e) {
-                return Container(
-                  width: 8,
-                  height: 8,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                );
-              }).toList(),
+    return GestureDetector(
+      onDoubleTap: () async {
+        await _likeFeed();
+      },
+      child: Stack(
+        children: [
+          CarouselSlider(
+            carouselController: carouselController,
+            items: imageUrls.map((url) => _imageZoomInOutWidget(url)).toList(),
+            options: CarouselOptions(
+              viewportFraction: 1.0,
+              onPageChanged: (index, reason) {
+                setState(() {
+                  _indicatorIndex = index;
+                });
+              },
+              height: MediaQuery.of(context).size.height * 0.35,
             ),
           ),
-        ),
-      ],
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: imageUrls.asMap().keys.map((e) {
+                  return Container(
+                    width: 8,
+                    height: 8,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _likeFeed() async {
+    await context.read<FeedProvider>().likeFeed(
+          feedId: widget.feedModel.feedId,
+          feedLikes: widget.feedModel.likes,
+        );
+
+    await context.read<UserProvider>().getUserInfo();
   }
 
   @override
   Widget build(BuildContext context) {
+    String currentUserId = context.read<UserState>().userModel.uid;
     FeedModel feedModel = widget.feedModel;
     UserModel userModel = feedModel.writer;
+    bool isLike = feedModel.likes.contains(currentUserId);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -111,10 +132,20 @@ class _FeedCardWidgetState extends State<FeedCardWidget> {
           ),
           _imageSliderWidget(feedModel.imageUrls), // Added comma here
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
             child: Row(
               children: [
-                Icon(Icons.favorite_border, color: Colors.white),
+                GestureDetector(
+                  onTap: () async {
+                    await _likeFeed();
+                  },
+                  child: isLike
+                      ? Icon(
+                          Icons.favorite,
+                          color: Colors.red,
+                        )
+                      : Icon(Icons.favorite_border, color: Colors.white),
+                ),
                 SizedBox(width: 5),
                 Text(
                   feedModel.likeCount.toString(),
